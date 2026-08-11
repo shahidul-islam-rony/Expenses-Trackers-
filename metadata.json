@@ -1,0 +1,8 @@
+{
+  "name": "Expense Tracker",
+  "description": "Track expenses, manage wallet & bank balances, ask Gemini AI Assistant about spending trends, and auto-import bank SMS transactions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
