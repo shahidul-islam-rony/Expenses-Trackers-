@@ -159,14 +159,14 @@ fun ExpenseTrackerScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.errorContainer,
+                            color = androidx.compose.ui.graphics.Color.Transparent,
                             modifier = Modifier.size(42.dp)
                         ) {
                             androidx.compose.foundation.Image(
-                                painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.red_dollar_logo_1786436723867),
+                                painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.app_logo),
                                 contentDescription = "App Logo",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
