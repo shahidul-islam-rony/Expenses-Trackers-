@@ -113,3 +113,47 @@ The app supports auto-detection and custom symbol configuration for a wide range
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+
+**Privacy Policy**
+
+**Effective Date:** August 13, 2026
+
+This Privacy Policy explains how **Expense Tracker** ("we," "our," or "us") handles your information. The app is designed with a **100% Offline & Private First** architecture to ensure your personal financial data remains fully under your control.
+
+---
+
+**1. Information We Collect and Process**
+
+* **SMS Alerts & Notifications:** The app reads incoming and inbox SMS messages, as well as push notifications from bank and email apps (e.g., Gmail, Outlook, Yahoo). This data is processed **locally on your device** solely to extract transaction amounts, merchant names, currencies, and dates.
+* **Manual Entries & Balances:** Account details, custom category preferences, and balance adjustments you manually enter are saved directly to your local database.
+* **AI Analysis Queries (Optional):** If you choose to use the Google Gemini AI features (such as spending insights or receipt parsing), transaction details required for that specific analysis are processed via Google's API.
+
+**2. How We Use Your Information**
+
+* To automatically log, categorize, and track your income and expenses.
+* To maintain separate account balances for Cash/Wallet and Online Banking.
+* To filter out non-matching currencies and prevent double-counting of entries.
+* To generate visual spending analytics and category breakdowns.
+
+**3. Data Storage & Security**
+
+* **Local Storage Only:** All transaction records, bank message parsing, and database persistence occur on your local device using Android's Room database.
+* **No Remote Server Storage:** We do not host, store, or transmit your personal financial data to any remote servers controlled by us.
+
+**4. App Permissions Required**
+
+| Permission / Access | Purpose |
+| --- | --- |
+| `READ_SMS` & `RECEIVE_SMS` | Used to scan inbox messages and catch incoming bank SMS notifications. |
+| `BIND_NOTIFICATION_LISTENER_SERVICE` | Used to read push notifications from email and banking apps for financial auto-sync. |
+| `INTERNET` | Used strictly for processing optional Google Gemini AI queries. |
+
+**5. Third-Party Services**
+
+The app operates offline by default. If you enable optional AI capabilities, interactions are governed by Google's Privacy Policy via the Google Gemini API. We do not share or sell your data to any third-party advertisers or analytics providers.
+
+**6. Contact & Changes**
+
+We may update this policy to reflect changes in functionality or legal requirements. For questions regarding this policy, please open an issue on the project repository.
+
