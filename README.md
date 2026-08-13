@@ -115,6 +115,7 @@ The app supports auto-detection and custom symbol configuration for a wide range
 Distributed under the MIT License. See `LICENSE` for more information.
 
 
+
 **Privacy Policy**
 
 **Effective Date:** August 13, 2026
@@ -156,4 +157,3 @@ The app operates offline by default. If you enable optional AI capabilities, int
 **6. Contact & Changes**
 
 We may update this policy to reflect changes in functionality or legal requirements. For questions regarding this policy, please open an issue on the project repository.
-
