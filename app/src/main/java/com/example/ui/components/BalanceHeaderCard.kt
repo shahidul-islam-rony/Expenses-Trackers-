@@ -2,7 +2,6 @@ package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +17,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -43,11 +36,13 @@ import androidx.compose.ui.unit.sp
 import com.example.data.BalanceSummary
 import java.util.Locale
 
+/**
+ * Pinned Top Banner showing only the Total Net Funds.
+ * Remains fixed at the top of the main screen during scroll.
+ */
 @Composable
-fun BalanceHeaderCard(
+fun TotalNetFundsCard(
     summary: BalanceSummary,
-    onAdjustBalancesClick: () -> Unit,
-    onShareSummaryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val symbol = summary.currencySymbol
@@ -55,141 +50,134 @@ fun BalanceHeaderCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .testTag("balance_header_card"),
-        shape = RoundedCornerShape(32.dp),
+            .testTag("total_net_funds_card"),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                // Top Header Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "LIVE TOTAL NET FUNDS",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "$symbol${String.format(Locale.US, "%.2f", summary.totalNetBalance)}",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontSize = 32.sp
-                        )
-                    }
+                Text(
+                    text = "TOTAL NET FUNDS",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                    letterSpacing = 1.2.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "$symbol${String.format(Locale.US, "%.2f", summary.totalNetBalance)}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontSize = 28.sp
+                )
+            }
 
+            // Quick status pill
+            Surface(
+                shape = CircleShape,
+                color = if (summary.totalNetBalance >= 0) {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                } else {
+                    MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                }
+            ) {
+                Text(
+                    text = if (summary.totalNetBalance >= 0) "Net Positive" else "Deficit",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (summary.totalNetBalance >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Scrollable Breakdown Section showing Wallet Cash, Online Banking, and Total Due / Debt.
+ * Scrolls with the rest of the main page content.
+ */
+@Composable
+fun FundAccountsBreakdown(
+    summary: BalanceSummary,
+    modifier: Modifier = Modifier
+) {
+    val symbol = summary.currencySymbol
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Wallet & Banking Sub-Cards
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            FundSubCard(
+                modifier = Modifier.weight(1f),
+                title = "Wallet Cash",
+                amount = summary.walletBalance,
+                currencySymbol = symbol,
+                icon = Icons.Default.AccountBalanceWallet,
+                accentColor = Color(0xFF00A878)
+            )
+
+            FundSubCard(
+                modifier = Modifier.weight(1f),
+                title = "Online Banking",
+                amount = summary.onlineBankBalance,
+                currencySymbol = symbol,
+                icon = Icons.Default.AccountBalance,
+                accentColor = Color(0xFF1E88E5)
+            )
+        }
+
+        // Total Due / Debt Warning Banner
+        AnimatedVisibility(visible = summary.totalDue > 0.0) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.tertiaryContainer
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = onAdjustBalancesClick,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.2f))
-                                .testTag("adjust_balances_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Adjust Balances",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = onShareSummaryClick,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                                .testTag("share_summary_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share Balance Summary",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Total Due Warning",
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Total Due / Debt:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Wallet & Banking Sub-Cards Grid
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Wallet Card
-                    FundSubCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Wallet Cash",
-                        amount = summary.walletBalance,
-                        currencySymbol = symbol,
-                        icon = Icons.Default.AccountBalanceWallet,
-                        accentColor = Color(0xFF00A878)
+                    Text(
+                        text = "$symbol${String.format(Locale.US, "%.2f", summary.totalDue)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
-
-                    // Online Banking Card
-                    FundSubCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Online Banking",
-                        amount = summary.onlineBankBalance,
-                        currencySymbol = symbol,
-                        icon = Icons.Default.AccountBalance,
-                        accentColor = Color(0xFF1E88E5)
-                    )
-                }
-
-                // Total Due / Unpaid Liabilities Warning Strip
-                AnimatedVisibility(visible = summary.totalDue > 0.0) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = "Total Due Warning",
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Total Due / Debt:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
-
-                            Text(
-                                text = "$symbol${String.format(Locale.US, "%.2f", summary.totalDue)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -207,19 +195,19 @@ private fun FundSubCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-        shadowElevation = 2.dp
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        shadowElevation = 1.dp
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(14.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(30.dp)
                         .clip(CircleShape)
                         .background(accentColor.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
@@ -228,7 +216,7 @@ private fun FundSubCard(
                         imageVector = icon,
                         contentDescription = title,
                         tint = accentColor,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -236,7 +224,7 @@ private fun FundSubCard(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))

@@ -1,13 +1,13 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,9 +15,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +47,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.data.BalanceSummary
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdjustBalancesDialog(
     summary: BalanceSummary,
@@ -55,8 +61,19 @@ fun AdjustBalancesDialog(
         mutableStateOf(String.format(Locale.US, "%.2f", summary.initialOnlineBank))
     }
     var selectedSymbol by remember { mutableStateOf(summary.currencySymbol) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
-    val currencySymbols = listOf("$", "₹", "€", "£", "৳", "¥", "₩", "A$")
+    val currencyOptions = listOf(
+        "BDT" to "৳",
+        "AED" to "AED",
+        "USD" to "$",
+        "EUR" to "€",
+        "INR" to "₹",
+        "GBP" to "£",
+        "SAR" to "SAR",
+        "CAD" to "C$",
+        "AUD" to "A$"
+    )
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -147,49 +164,61 @@ fun AdjustBalancesDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Currency Symbol / Code Selection
+                // Currency Dropdown Selection
                 Text(
-                    text = "Active Tracker Currency (Auto-Detect Filter)",
+                    text = "Active Tracker Currency",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "SMS and Email transactions in this currency will be automatically added. Other currencies will be ignored.",
+                    text = "SMS and Email transactions in this currency will be automatically added.",
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val presetCurrencies = listOf("BDT", "AED", "USD", "EUR", "INR", "GBP")
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ExposedDropdownMenuBox(
+                    expanded = dropdownExpanded,
+                    onExpandedChange = { dropdownExpanded = !dropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    presetCurrencies.forEach { curr ->
-                        FilterChip(
-                            selected = selectedSymbol.equals(curr, ignoreCase = true) ||
-                                    (curr == "BDT" && selectedSymbol == "৳") ||
-                                    (curr == "USD" && selectedSymbol == "$") ||
-                                    (curr == "EUR" && selectedSymbol == "€") ||
-                                    (curr == "INR" && selectedSymbol == "₹"),
-                            onClick = { selectedSymbol = curr },
-                            label = { Text(curr, fontWeight = FontWeight.Bold) }
-                        )
+                    OutlinedTextField(
+                        value = selectedSymbol,
+                        onValueChange = { selectedSymbol = it.uppercase() },
+                        label = { Text("Select Currency Code / Symbol") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                        readOnly = false,
+                        singleLine = true,
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        currencyOptions.forEach { (code, symbol) ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = "$code ($symbol)", fontWeight = FontWeight.Bold)
+                                    }
+                                },
+                                onClick = {
+                                    selectedSymbol = symbol
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = selectedSymbol,
-                    onValueChange = { selectedSymbol = it.uppercase() },
-                    label = { Text("Active Currency Code or Symbol (e.g., AED, BDT, USD, ৳)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
