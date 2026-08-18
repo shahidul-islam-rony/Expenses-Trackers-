@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
@@ -27,12 +23,25 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.ExpenseCategory
 
 @Composable
 fun QuickGroceryBar(
+    categories: List<ExpenseCategory>,
     onQuickAddCategory: (category: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val displayCategories = if (categories.isNotEmpty()) {
+        categories.take(6)
+    } else {
+        listOf(
+            ExpenseCategory(name = "Groceries", iconEmoji = "🛒", isCustom = false),
+            ExpenseCategory(name = "Dining", iconEmoji = "🍔", isCustom = false),
+            ExpenseCategory(name = "Utilities", iconEmoji = "💡", isCustom = false),
+            ExpenseCategory(name = "Transport", iconEmoji = "🚖", isCustom = false)
+        )
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "QUICK DAILY ENTRY",
@@ -50,63 +59,23 @@ fun QuickGroceryBar(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AssistChip(
-                onClick = { onQuickAddCategory("Groceries") },
-                label = { Text("🛒 Groceries", fontWeight = FontWeight.SemiBold) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                ),
-                modifier = Modifier.testTag("quick_groceries_chip")
-            )
-
-            AssistChip(
-                onClick = { onQuickAddCategory("Dining") },
-                label = { Text("🍔 Dining & Food", fontWeight = FontWeight.SemiBold) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                ),
-                modifier = Modifier.testTag("quick_dining_chip")
-            )
-
-            AssistChip(
-                onClick = { onQuickAddCategory("Transport") },
-                label = { Text("🚖 Transport", fontWeight = FontWeight.SemiBold) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                modifier = Modifier.testTag("quick_transport_chip")
-            )
-
-            AssistChip(
-                onClick = { onQuickAddCategory("Utilities") },
-                label = { Text("💡 Utilities", fontWeight = FontWeight.SemiBold) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                },
-                modifier = Modifier.testTag("quick_utilities_chip")
-            )
+            displayCategories.forEach { cat ->
+                AssistChip(
+                    onClick = { onQuickAddCategory(cat.name) },
+                    label = { Text("${cat.iconEmoji} ${cat.name}", fontWeight = FontWeight.SemiBold) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    ),
+                    modifier = Modifier.testTag("quick_${cat.name.lowercase()}_chip")
+                )
+            }
         }
     }
 }

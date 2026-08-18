@@ -1,9 +1,7 @@
 package com.example.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -15,16 +13,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -44,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.AccountType
+import com.example.data.ExpenseCategory
 import com.example.data.TransactionType
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -60,6 +59,8 @@ import com.example.data.TransactionType
 fun AddTransactionDialog(
     currencySymbol: String,
     initialCategory: String = "Groceries",
+    categories: List<ExpenseCategory> = emptyList(),
+    onOpenManageCategories: () -> Unit,
     onDismissRequest: () -> Unit,
     onSaveTransaction: (
         type: TransactionType,
@@ -77,11 +78,6 @@ fun AddTransactionDialog(
     var selectedAccount by remember { mutableStateOf(AccountType.WALLET) }
     var noteText by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
-
-    val categories = listOf(
-        "Groceries", "Dining", "Utilities", "Transport",
-        "Shopping", "Bills", "Salary", "Due/Debt", "Other"
-    )
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -261,12 +257,33 @@ fun AddTransactionDialog(
                 }
 
                 // Category Chips
-                Text(
-                    text = "Category",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Category",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    AssistChip(
+                        onClick = onOpenManageCategories,
+                        label = { Text("+ New Category", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        )
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
 
                 FlowRow(
@@ -276,9 +293,9 @@ fun AddTransactionDialog(
                 ) {
                     categories.forEach { cat ->
                         FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(cat, fontSize = 12.sp) },
+                            selected = selectedCategory.equals(cat.name, ignoreCase = true),
+                            onClick = { selectedCategory = cat.name },
+                            label = { Text("${cat.iconEmoji} ${cat.name}", fontSize = 12.sp) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer

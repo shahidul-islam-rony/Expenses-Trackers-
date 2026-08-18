@@ -34,6 +34,18 @@ interface AppDao {
     @Query("DELETE FROM expense_transactions WHERE id = :id")
     suspend fun deleteTransactionById(id: Int)
 
+    @Query("DELETE FROM expense_transactions WHERE id IN (:ids)")
+    suspend fun deleteTransactionsByIds(ids: List<Int>)
+
     @Query("DELETE FROM expense_transactions")
     suspend fun clearAllTransactions()
+
+    @Query("SELECT * FROM expense_categories ORDER BY id ASC")
+    fun getAllCategoriesFlow(): Flow<List<ExpenseCategory>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCategory(category: ExpenseCategory)
+
+    @Delete
+    suspend fun deleteCategory(category: ExpenseCategory)
 }

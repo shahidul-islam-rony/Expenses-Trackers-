@@ -7,8 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [FundAccount::class, ExpenseTransaction::class],
-    version = 1,
+    entities = [FundAccount::class, ExpenseTransaction::class, ExpenseCategory::class],
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -1,6 +1,8 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,16 +24,15 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,12 +56,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TransactionItemCard(
     transaction: ExpenseTransaction,
     currencySymbol: String,
     onDeleteClick: () -> Unit,
     onToggleClearedClick: () -> Unit,
+    isSelectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onToggleSelect: () -> Unit = {},
+    onLongClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val categoryIcon = getCategoryIcon(transaction.category)
@@ -70,19 +76,47 @@ fun TransactionItemCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .combinedClickable(
+                onClick = {
+                    if (isSelectionMode) {
+                        onToggleSelect()
+                    }
+                },
+                onLongClick = {
+                    onLongClick()
+                }
+            )
             .testTag("transaction_item_${transaction.id}"),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isSelected)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 3.dp else 1.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Checkbox for selection mode
+            if (isSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onToggleSelect() },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .testTag("checkbox_${transaction.id}")
+                )
+            }
+
             // Category Icon Badge
             Box(
                 modifier = Modifier
@@ -171,7 +205,7 @@ fun TransactionItemCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Amount & Actions
+            // Amount & Individual Actions (Hidden in bulk selection mode to keep focus on selecting)
             Column(
                 horizontalAlignment = Alignment.End
             ) {
@@ -191,31 +225,33 @@ fun TransactionItemCard(
                     color = amountColor
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (transaction.type == TransactionType.DUE) {
+                if (!isSelectionMode) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (transaction.type == TransactionType.DUE) {
+                            IconButton(
+                                onClick = onToggleClearedClick,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (transaction.isCleared) Icons.Default.CheckCircle else Icons.Default.Check,
+                                    contentDescription = if (transaction.isCleared) "Mark Unpaid" else "Mark Paid",
+                                    tint = if (transaction.isCleared) Color(0xFF00A878) else Color.Gray,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+
                         IconButton(
-                            onClick = onToggleClearedClick,
+                            onClick = onDeleteClick,
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
-                                imageVector = if (transaction.isCleared) Icons.Default.CheckCircle else Icons.Default.Check,
-                                contentDescription = if (transaction.isCleared) "Mark Unpaid" else "Mark Paid",
-                                tint = if (transaction.isCleared) Color(0xFF00A878) else Color.Gray,
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Transaction",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
-                    }
-
-                    IconButton(
-                        onClick = onDeleteClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Transaction",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.size(18.dp)
-                        )
                     }
                 }
             }

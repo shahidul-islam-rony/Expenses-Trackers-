@@ -21,6 +21,7 @@ class ExpenseRepository(private val appDao: AppDao) {
 
     val fundAccountFlow: Flow<FundAccount?> = appDao.getFundAccountFlow()
     val allTransactionsFlow: Flow<List<ExpenseTransaction>> = appDao.getAllTransactions()
+    val allCategoriesFlow: Flow<List<ExpenseCategory>> = appDao.getAllCategoriesFlow()
 
     val balanceSummaryFlow: Flow<BalanceSummary> = combine(
         fundAccountFlow,
@@ -107,9 +108,40 @@ class ExpenseRepository(private val appDao: AppDao) {
         appDao.deleteTransactionById(id)
     }
 
+    suspend fun deleteTransactionsByIds(ids: List<Int>) {
+        if (ids.isNotEmpty()) {
+            appDao.deleteTransactionsByIds(ids)
+        }
+    }
+
+    suspend fun addCategory(category: ExpenseCategory) {
+        appDao.insertCategory(category)
+    }
+
+    suspend fun deleteCategory(category: ExpenseCategory) {
+        appDao.deleteCategory(category)
+    }
+
     suspend fun seedSampleDataIfEmpty() {
         val fundAccount = appDao.getFundAccount()
         if (fundAccount == null) {
+            // Seed standard initial categories
+            val defaultCategories = listOf(
+                ExpenseCategory(name = "Groceries", iconEmoji = "🛒", isCustom = false),
+                ExpenseCategory(name = "Dining", iconEmoji = "🍔", isCustom = false),
+                ExpenseCategory(name = "Utilities", iconEmoji = "💡", isCustom = false),
+                ExpenseCategory(name = "Transport", iconEmoji = "🚖", isCustom = false),
+                ExpenseCategory(name = "Shopping", iconEmoji = "🛍️", isCustom = false),
+                ExpenseCategory(name = "Bills", iconEmoji = "📄", isCustom = false),
+                ExpenseCategory(name = "Healthcare", iconEmoji = "🏥", isCustom = false),
+                ExpenseCategory(name = "Entertainment", iconEmoji = "🎬", isCustom = false),
+                ExpenseCategory(name = "Salary", iconEmoji = "💰", isCustom = false),
+                ExpenseCategory(name = "Due/Debt", iconEmoji = "⏳", isCustom = false),
+                ExpenseCategory(name = "Other", iconEmoji = "📦", isCustom = false)
+            )
+            for (cat in defaultCategories) {
+                appDao.insertCategory(cat)
+            }
             // Setup default initial funds: e.g. Wallet = 250.0, Online Bank = 1200.0
             appDao.insertOrUpdateFundAccount(
                 FundAccount(
